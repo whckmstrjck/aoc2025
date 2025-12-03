@@ -21,7 +21,7 @@ function getHighestDigit(pack, isLastDigit) {
 function getHighestJoltage(pack) {
   let digits = '';
 
-  for (let i = 1; i <= 12; i++) {}
+  for (let i = 11; i <= 0; i--) {}
 
   // const firstDigit = getHighestDigit(pack, true);
 
