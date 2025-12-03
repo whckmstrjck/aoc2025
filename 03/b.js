@@ -1,39 +1,36 @@
 const fs = require('fs');
 
-const input = fs.readFileSync('test-input.txt', 'utf8');
+const input = fs.readFileSync('input.txt', 'utf8');
 const batteryPacks = input.split('\n');
 
-let joltageSum = 0;
-
-function getHighestDigit(pack, isLastDigit) {
-  let highest = '1';
+function getHighestDigitInPack(pack, remainingDigits) {
+  let highestDigit = '1';
 
   for (i = 0; i < pack.length; i++) {
     const digit = pack[i];
-    if (digit > highest && !(!isLastDigit && i === pack.length - 1)) {
-      highest = digit;
+    if (digit > highestDigit && i < pack.length - remainingDigits) {
+      highestDigit = digit;
     }
   }
 
-  return highest;
+  return highestDigit;
 }
 
-function getHighestJoltage(pack) {
+function getHighestJoltageInPack(pack) {
   let digits = '';
 
-  for (let i = 11; i <= 0; i--) {}
+  for (let i = 0; i <= 11; i++) {
+    const highestDigitInPack = getHighestDigitInPack(pack, 11 - i);
+    digits += highestDigitInPack;
+    pack = pack.slice(pack.indexOf(highestDigitInPack) + 1);
+  }
 
-  // const firstDigit = getHighestDigit(pack, true);
-
-  // const indexOfFirstDigit = pack.indexOf(firstDigit);
-  // const subPack = pack.slice(indexOfFirstDigit + 1);
-  // const secondDigit = getHighestDigit(subPack, false);
-
-  // return parseInt(firstDigit + secondDigit);
+  return Number(digits);
 }
 
+let joltageSum = 0;
 for (const pack of batteryPacks) {
-  joltageSum += getHighestJoltage(pack);
+  joltageSum += getHighestJoltageInPack(pack);
 }
 
 console.log('⚡️ JOLTAGE SUM: ', joltageSum);
