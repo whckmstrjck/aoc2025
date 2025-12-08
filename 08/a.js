@@ -6,58 +6,77 @@ class JunctionBox {
   y = 0;
   z = 0;
 
-  constructor(coords) {
-    [this.x, this.y, this.z] = coords.split(',').map(Number);
+  closestDistance = Infinity;
+
+  constructor(coordsStr) {
+    [this.x, this.y, this.z] = coordsStr.split(',').map(Number);
   }
 
   getDistance = (otherBox) =>
     Math.sqrt(Math.pow(otherBox.x - this.x, 2) + Math.pow(otherBox.y - this.y, 2) + Math.pow(otherBox.z - this.z, 2));
 }
+class JunctionBoxList {
+  searchDistance = 15000;
+  items = null;
+  closestDistanceMap = new Map();
 
-const disconnectedBoxes = input.split('\n').map((boxStr) => new JunctionBox(boxStr));
-const circuits = [];
+  constructor(coordinateData) {
+    this.items = coordinateData.split('\n').map((coordsStr) => new JunctionBox(coordsStr));
+  }
 
-for (let circuitCount = 0; circuitCount < 3; circuitCount++) {
-  const currentBox = disconnectedBoxes[0];
+  measureDistances() {
+    for (const box of this.items) {
+      const closestBoxes = this.getClosestBoxes(box);
 
-  let shortestDistance = Infinity;
-  let closestCircuit = null;
-  let closestBox = null;
+      let closestDistance = Infinity;
+      let closestBox = null;
 
-  for (let i = 0; i < circuits.length; i++) {
-    const circuit = circuits[i];
-    for (let j = 0; j < circuit.length; j++) {
-      const otherBox = circuit[j];
-      const distance = currentBox.getDistance(otherBox);
+      for (const otherBox of closestBoxes) {
+        const distance = box.getDistance(otherBox);
 
-      if (distance < shortestDistance) {
-        shortestDistance = distance;
-        closestBox = otherBox;
-        closestCircuit = circuit;
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestBox = otherBox;
+        }
       }
+
+      box.closestDistance = closestDistance;
+      this.closestDistanceMap.set(box, closestBox);
     }
   }
 
-  for (let i = 1; i < disconnectedBoxes.length; i++) {
-    const otherBox = disconnectedBoxes[i];
-    const distance = currentBox.getDistance(otherBox);
+  getClosestBoxes(box) {
+    return this.items.filter((otherBox) => {
+      if (otherBox === box) return false;
 
-    if (distance < shortestDistance) {
-      shortestDistance = distance;
-      closestBox = otherBox;
-      closestCircuit = null;
-    }
+      return (
+        box.x - this.searchDistance <= otherBox.x &&
+        box.x + this.searchDistance >= otherBox.x &&
+        box.y - this.searchDistance <= otherBox.y &&
+        box.y + this.searchDistance >= otherBox.y &&
+        box.z - this.searchDistance <= otherBox.z &&
+        box.z + this.searchDistance >= otherBox.z
+      );
+    });
   }
-
-  if (!closestCircuit) {
-    circuits.push([currentBox, closestBox]);
-  } else {
-    closestCircuit.push(currentBox);
-  }
-
-  disconnectedBoxes.splice(disconnectedBoxes.indexOf(currentBox), 1);
-
-  console.log(circuits);
 }
 
-console.log(circuits.map((circuit) => circuit.length));
+const junctionBoxList = new JunctionBoxList(input);
+junctionBoxList.measureDistances();
+
+const boxesByDistance = [...junctionBoxList.items].sort((a, b) => a.closestDistance - b.closestDistance);
+const circuits = [];
+
+console.log(boxesByDistance[2]);
+console.log(console.log(junctionBoxList.closestDistanceMap.get(boxesByDistance[2])));
+
+let connectionsMade = 0;
+while (connectionsMade < 11) {
+  const currentBox = boxesByDistance[0];
+  const closestBox = junctionBoxList.closestDistanceMap.get(currentBox);
+}
+
+const topThreeCircuits = circuits.sort((a, b) => b.length - a.length).slice(0, 3);
+const circuitSum = topThreeCircuits.reduce((sum, circuit) => sum * circuit.length, 1);
+
+console.log('⚡ SUM OF TOP THREE:', circuitSum);
